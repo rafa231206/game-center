@@ -2,7 +2,7 @@ const CACHE_NAME = "skybound-cache-v2";
 
 const ASSETS_TO_CACHE = [
   "./",
-  "./index.html",
+  "./skybound.html",
   "./manifest.json",
 
   // Character & decor images
