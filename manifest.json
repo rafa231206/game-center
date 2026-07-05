@@ -1,7 +1,7 @@
 {
     "name": "Skybound Lovers",
     "short_name": "Skybound",
-    "start_url": "index.html",
+    "start_url": "skybound.html",
     "display": "standalone",
     "background_color": "#a0d8f1",
     "theme_color": "#2196F3",
