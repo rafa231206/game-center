@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>One Line 🖊️</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root{
+    --pink:#ff4f92;
+    --pink2:#ff85b3;
+    --gold:#ffd166;
+    --glass:rgba(255,255,255,.18);
+    --shadow:0 15px 35px rgba(0,0,0,.18);
+  }
+
+  html,body{ height:100%; overscroll-behavior:none; }
+
+  body{
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#fd5196,#fc76b0,#f8c4da);
+    background-attachment:fixed;
+    color:#fff;
+    min-height:100vh;
+    overflow-x:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 14px 40px;
+    touch-action:pan-y;
+  }
+
+  .top-bar{
+    width:100%;
+    max-width:440px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+
+  .back-btn{
+    text-decoration:none;
+    color:#fff;
+    background:var(--glass);
+    backdrop-filter:blur(10px);
+    padding:9px 16px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:500;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease;
+  }
+  .back-btn:hover{ transform:translateY(-2px); }
+
+  h2{
+    text-align:center;
+    font-size:clamp(1.3em,5vw,1.8em);
+    margin-bottom:4px;
+    text-shadow:0 4px 14px rgba(0,0,0,.2);
+  }
+
+  .subtitle{
+    text-align:center;
+    font-size:13px;
+    opacity:.92;
+    max-width:380px;
+    margin-bottom:14px;
+    line-height:1.6;
+  }
+
+  .stats{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-bottom:14px;
+  }
+  .stats div{
+    min-width:92px;
+    padding:9px 16px;
+    border-radius:16px;
+    background:var(--glass);
+    backdrop-filter:blur(12px);
+    text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .stats span{ font-size:11px; opacity:.9; display:block; }
+  .stats h3{ font-size:20px; margin-top:2px; }
+
+  .board-wrap{
+    width:min(420px,94vw);
+    background:rgba(255,255,255,.14);
+    border-radius:20px;
+    box-shadow:var(--shadow), inset 0 0 0 2px rgba(255,255,255,.25);
+    padding:14px;
+    touch-action:none;
+  }
+
+  svg{
+    display:block;
+    width:100%;
+    height:auto;
+    touch-action:none;
+  }
+
+  .hint{
+    text-align:center;
+    font-size:12px;
+    opacity:.85;
+    margin-top:12px;
+    max-width:360px;
+    line-height:1.6;
+  }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  .btn{
+    font-family:'Poppins',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:11px 22px;
+    border:none;
+    border-radius:30px;
+    background:#fff;
+    color:var(--pink);
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease;
+  }
+  .btn:hover{ transform:translateY(-3px); }
+  .btn.secondary{
+    background:var(--glass);
+    color:#fff;
+    backdrop-filter:blur(10px);
+  }
+
+  #overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(120,20,60,.55);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  #overlay.show{ display:flex; }
+  .overlay-card{
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:22px;
+    padding:34px 28px;
+    text-align:center;
+    max-width:320px;
+    box-shadow:0 25px 50px rgba(0,0,0,.4);
+  }
+  .overlay-card h2{ margin-bottom:10px; }
+  .overlay-card p{ font-size:14px; opacity:.9; margin-bottom:18px; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<!-- Sound Effects -->
+<audio id="drawSound" src="click.mp3" preload="auto"></audio>
+<audio id="winSound" src="powerup.mp3" preload="auto"></audio>
+
+<div class="top-bar">
+  <a href="menu.html" class="back-btn">⬅ Menu</a>
+  <span></span>
+</div>
+
+<h2>🖊️ One Line</h2>
+<p class="subtitle">Gambar semua garis dalam satu tarikan tanpa mengangkat jari dan tanpa menimpa garis yang sama!</p>
+
+<div class="stats">
+  <div><span>Level</span><h3 id="levelEl">1</h3></div>
+  <div><span>Percobaan</span><h3 id="triesEl">0</h3></div>
+</div>
+
+<div class="board-wrap">
+  <svg id="svgBoard" viewBox="0 0 100 100"></svg>
+</div>
+
+<p class="hint">💡 Titik yang berkedip putih adalah titik awal yang valid. Ada garis yang saling silang secara visual, tapi tetap satu jalur — teliti ya milih arahnya, jangan sampai salah nyambung!</p>
+
+<div class="controls">
+  <button class="btn" id="resetDrawBtn">🔄 Ulang Gambar</button>
+  <button class="btn secondary" id="newPuzzleBtn">🔀 Puzzle Baru</button>
+</div>
+
+<div id="overlay">
+  <div class="overlay-card">
+    <h2>Berhasil! 🎉</h2>
+    <p id="successMsg">Level selesai dalam beberapa percobaan!</p>
+    <button class="btn" id="nextLevelBtn">▶ Level Berikutnya</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const svg = document.getElementById('svgBoard');
+  const levelEl = document.getElementById('levelEl');
+  const triesEl = document.getElementById('triesEl');
+  const resetDrawBtn = document.getElementById('resetDrawBtn');
+  const newPuzzleBtn = document.getElementById('newPuzzleBtn');
+  const overlay = document.getElementById('overlay');
+  const nextLevelBtn = document.getElementById('nextLevelBtn');
+  const successMsg = document.getElementById('successMsg');
+
+  const drawSound = document.getElementById('drawSound');
+  const winSound = document.getElementById('winSound');
+
+  function playSfx(audio){
+    try{
+      audio.currentTime = 0;
+      audio.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  const CELL = 60;
+  const PAD = 26;
+  const NODE_R = 9;
+  const HIT_RADIUS = 26;
+
+  let level = 1;
+  let tries = 0;
+  let puzzle = null;
+  let edgeDrawn = [];
+  let activeNodeKey = null;
+  let dragging = false;
+  let pointerSvgPos = null;
+  let completed = false;
+
+  function key(r,c){ return r+','+c; }
+
+  function generateSimplePath(rows, cols, targetLen){
+    const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+    let opsBudget = 20000;
+    let bestPath = null;
+
+    function tryOnce(){
+      const start = [Math.floor(Math.random()*rows), Math.floor(Math.random()*cols)];
+      const visited = new Set([key(start[0],start[1])]);
+      const path = [start];
+
+      function backtrack(){
+        opsBudget--;
+        if(opsBudget <= 0) return false;
+        if(path.length - 1 >= targetLen) return true;
+        const current = path[path.length - 1];
+        const options = dirs
+          .map(([dr,dc]) => [current[0]+dr, current[1]+dc])
+          .filter(([r,c]) => r>=0 && r<rows && c>=0 && c<cols && !visited.has(key(r,c)));
+        options.sort(() => Math.random() - 0.5);
+        for(const opt of options){
+          const k = key(opt[0], opt[1]);
+          visited.add(k);
+          path.push(opt);
+          if(backtrack()) return true;
+          path.pop();
+          visited.delete(k);
+          if(opsBudget <= 0) return false;
+        }
+        return false;
+      }
+
+      backtrack();
+      return path.slice();
+    }
+
+    for(let attempt=0; attempt<6 && opsBudget>0; attempt++){
+      const p = tryOnce();
+      if(!bestPath || p.length > bestPath.length) bestPath = p;
+      if(bestPath.length - 1 >= targetLen) break;
+    }
+
+    const edges = [];
+    for(let i=0;i<bestPath.length-1;i++){
+      edges.push([bestPath[i], bestPath[i+1]]);
+    }
+    return edges;
+  }
+
+  function buildPuzzle(lvl){
+    const size = Math.min(3 + Math.floor(lvl/2), 7);
+    const targetSteps = Math.min(7 + lvl*2, 26);
+    let edges = [];
+    let attempts = 0;
+    while(edges.length < Math.min(6 + lvl, 14) && attempts < 15){
+      edges = generateSimplePath(size, size, targetSteps);
+      attempts++;
+    }
+
+    const nodeSet = {};
+    edges.forEach(([a,b])=>{
+      nodeSet[key(a[0],a[1])] = a;
+      nodeSet[key(b[0],b[1])] = b;
+    });
+
+    const coords = Object.values(nodeSet);
+    const minR = Math.min(...coords.map(c=>c[0]));
+    const maxR = Math.max(...coords.map(c=>c[0]));
+    const minC = Math.min(...coords.map(c=>c[1]));
+    const maxC = Math.max(...coords.map(c=>c[1]));
+
+    const nodes = {};
+    Object.entries(nodeSet).forEach(([k, [r,c]])=>{
+      nodes[k] = {
+        key: k,
+        r, c,
+        x: (c - minC) * CELL + PAD,
+        y: (r - minR) * CELL + PAD,
+        degree: 0
+      };
+    });
+
+    const adj = {};
+    edges.forEach(([a,b], idx)=>{
+      const ak = key(a[0],a[1]), bk = key(b[0],b[1]);
+      nodes[ak].degree++;
+      nodes[bk].degree++;
+      (adj[ak] = adj[ak] || []).push({ to: bk, idx });
+      (adj[bk] = adj[bk] || []).push({ to: ak, idx });
+    });
+
+    const oddNodes = Object.values(nodes).filter(n => n.degree % 2 === 1).map(n => n.key);
+
+    const width = (maxC - minC) * CELL + PAD*2;
+    const height = (maxR - minR) * CELL + PAD*2;
+
+    return { edges, nodes, adj, oddNodes, width, height };
+  }
+
+  function isValidStart(nodeKey){
+    if(puzzle.oddNodes.length > 0){
+      return puzzle.oddNodes.includes(nodeKey);
+    }
+    return puzzle.nodes[nodeKey].degree > 0;
+  }
+
+  function resetDrawing(){
+    edgeDrawn = puzzle.edges.map(() => false);
+    activeNodeKey = null;
+    dragging = false;
+    pointerSvgPos = null;
+  }
+
+  function newLevel(lvl){
+    level = lvl;
+    levelEl.textContent = level;
+    tries = 0;
+    triesEl.textContent = tries;
+    puzzle = buildPuzzle(level);
+    resetDrawing();
+    render();
+  }
+
+  function regeneratePuzzleSameLevel(){
+    puzzle = buildPuzzle(level);
+    resetDrawing();
+    render();
+  }
+
+  function render(){
+    svg.setAttribute('viewBox', `0 0 ${puzzle.width} ${puzzle.height}`);
+    svg.innerHTML = '';
+
+    puzzle.edges.forEach(([a,b], idx)=>{
+      const an = puzzle.nodes[key(a[0],a[1])];
+      const bn = puzzle.nodes[key(b[0],b[1])];
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', an.x);
+      line.setAttribute('y1', an.y);
+      line.setAttribute('x2', bn.x);
+      line.setAttribute('y2', bn.y);
+      line.setAttribute('stroke-linecap','round');
+      if(edgeDrawn[idx]){
+        line.setAttribute('stroke', 'url(#lineGrad)');
+        line.setAttribute('stroke-width', 8);
+      } else {
+        line.setAttribute('stroke', 'rgba(255,255,255,.38)');
+        line.setAttribute('stroke-width', 6);
+      }
+      svg.appendChild(line);
+    });
+
+    if(dragging && activeNodeKey && pointerSvgPos){
+      const an = puzzle.nodes[activeNodeKey];
+      const live = document.createElementNS('http://www.w3.org/2000/svg','line');
+      live.setAttribute('x1', an.x);
+      live.setAttribute('y1', an.y);
+      live.setAttribute('x2', pointerSvgPos.x);
+      live.setAttribute('y2', pointerSvgPos.y);
+      live.setAttribute('stroke', 'rgba(255,255,255,.55)');
+      live.setAttribute('stroke-width', 6);
+      live.setAttribute('stroke-linecap','round');
+      live.setAttribute('stroke-dasharray','2,6');
+      svg.appendChild(live);
+    }
+
+    const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+    defs.innerHTML = `<linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff4f92"/>
+      <stop offset="100%" stop-color="#ffd166"/>
+    </linearGradient>`;
+    svg.appendChild(defs);
+
+    Object.values(puzzle.nodes).forEach(n=>{
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', n.x);
+      circle.setAttribute('cy', n.y);
+      const isEndpoint = isValidStart(n.key);
+      const isActive = n.key === activeNodeKey;
+      circle.setAttribute('r', isActive ? NODE_R+3 : NODE_R);
+      if(isActive){
+        circle.setAttribute('fill', '#ffd166');
+      } else if(isEndpoint){
+        circle.setAttribute('fill', '#fff');
+        circle.setAttribute('class','pulse-node');
+      } else {
+        circle.setAttribute('fill', 'rgba(255,255,255,.75)');
+      }
+      circle.setAttribute('stroke', '#ff4f92');
+      circle.setAttribute('stroke-width', '2.5');
+      svg.appendChild(circle);
+    });
+  }
+
+  function getSvgPoint(evt){
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const ctm = svg.getScreenCTM().inverse();
+    return pt.matrixTransform(ctm);
+  }
+
+  function onPointerDown(evt){
+    if(completed) return;
+    const p = getSvgPoint(evt);
+    let nearest = null, nearestDist = Infinity;
+    Object.values(puzzle.nodes).forEach(n=>{
+      if(!isValidStart(n.key)) return;
+      const d = Math.hypot(p.x - n.x, p.y - n.y);
+      if(d < nearestDist){ nearestDist = d; nearest = n; }
+    });
+    if(nearest && nearestDist < HIT_RADIUS){
+      evt.preventDefault();
+      resetDrawing();
+      dragging = true;
+      activeNodeKey = nearest.key;
+      pointerSvgPos = p;
+      tries++;
+      triesEl.textContent = tries;
+      try{ svg.setPointerCapture(evt.pointerId); }catch(e){}
+      render();
+    }
+  }
+
+  function onPointerMove(evt){
+    if(!dragging) return;
+    evt.preventDefault();
+    const p = getSvgPoint(evt);
+    pointerSvgPos = p;
+
+    let committed = true;
+    while(committed){
+      committed = false;
+      const neighbors = puzzle.adj[activeNodeKey] || [];
+      for(const nb of neighbors){
+        if(edgeDrawn[nb.idx]) continue;
+        const node = puzzle.nodes[nb.to];
+        const d = Math.hypot(p.x - node.x, p.y - node.y);
+        if(d < HIT_RADIUS){
+          edgeDrawn[nb.idx] = true;
+          activeNodeKey = nb.to;
+          committed = true;
+          playSfx(drawSound);
+          break;
+        }
+      }
+    }
+
+    render();
+
+    if(edgeDrawn.every(v => v)){
+      onWin();
+    }
+  }
+
+  function onPointerUp(evt){
+    if(!dragging) return;
+    dragging = false;
+    try{ svg.releasePointerCapture(evt.pointerId); }catch(e){}
+    if(!completed){
+      if(!edgeDrawn.every(v => v)){
+        resetDrawing();
+      }
+    }
+    render();
+  }
+
+  function onWin(){
+    completed = true;
+    dragging = false;
+    playSfx(winSound);
+    successMsg.textContent = 'Level ' + level + ' selesai dalam ' + tries + ' percobaan! 🎉';
+    setTimeout(()=> overlay.classList.add('show'), 300);
+  }
+
+  svg.addEventListener('pointerdown', onPointerDown);
+  svg.addEventListener('pointermove', onPointerMove);
+  svg.addEventListener('pointerup', onPointerUp);
+  svg.addEventListener('pointercancel', onPointerUp);
+
+  resetDrawBtn.addEventListener('click', ()=>{
+    if(completed) return;
+    resetDrawing();
+    render();
+  });
+
+  newPuzzleBtn.addEventListener('click', ()=>{
+    completed = false;
+    overlay.classList.remove('show');
+    regeneratePuzzleSameLevel();
+  });
+
+  nextLevelBtn.addEventListener('click', ()=>{
+    completed = false;
+    overlay.classList.remove('show');
+    newLevel(level + 1);
+  });
+
+  newLevel(1);
+})();
+</script>
+
+</body>
+</html>

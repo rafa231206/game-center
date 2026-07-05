@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Baut & Mur 🔩</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root{
+    --pink:#ff4f92;
+    --pink2:#ff85b3;
+    --glass:rgba(255,255,255,.18);
+    --shadow:0 15px 35px rgba(0,0,0,.18);
+  }
+
+  html,body{ height:100%; overscroll-behavior:none; }
+
+  body{
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#fd5196,#fc76b0,#f8c4da);
+    background-attachment:fixed;
+    color:#fff;
+    min-height:100vh;
+    overflow-x:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 14px 40px;
+    touch-action:pan-y;
+  }
+
+  .top-bar{
+    width:100%;
+    max-width:440px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+  }
+
+  .back-btn{
+    text-decoration:none;
+    color:#fff;
+    background:var(--glass);
+    backdrop-filter:blur(10px);
+    padding:9px 16px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:500;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease;
+  }
+  .back-btn:hover{ transform:translateY(-2px); }
+
+  h2{
+    text-align:center;
+    font-size:clamp(1.3em,5vw,1.8em);
+    margin-bottom:4px;
+    text-shadow:0 4px 14px rgba(0,0,0,.2);
+  }
+
+  .subtitle{
+    text-align:center;
+    font-size:13px;
+    opacity:.92;
+    max-width:380px;
+    margin-bottom:14px;
+    line-height:1.6;
+  }
+
+  .stats{
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    margin-bottom:14px;
+  }
+  .stats div{
+    min-width:92px;
+    padding:9px 16px;
+    border-radius:16px;
+    background:var(--glass);
+    backdrop-filter:blur(12px);
+    text-align:center;
+    box-shadow:var(--shadow);
+  }
+  .stats span{ font-size:11px; opacity:.9; display:block; }
+  .stats h3{ font-size:20px; margin-top:2px; }
+
+  .board-wrap{
+    width:min(420px,94vw);
+    background:rgba(255,255,255,.14);
+    border-radius:20px;
+    box-shadow:var(--shadow), inset 0 0 0 2px rgba(255,255,255,.25);
+    padding:14px;
+    touch-action:none;
+  }
+
+  svg{
+    display:block;
+    width:100%;
+    height:auto;
+    touch-action:none;
+    overflow:visible;
+  }
+
+  .pin-group{ cursor:pointer; }
+  .pin-group .pin-slot{ opacity:.55; }
+
+  @keyframes shakePin{
+    0%,100%{ transform:translate(0,0); }
+    20%{ transform:translate(-4px,0); }
+    40%{ transform:translate(4px,0); }
+    60%{ transform:translate(-3px,0); }
+    80%{ transform:translate(3px,0); }
+  }
+  .shake{ animation:shakePin .35s ease; }
+
+  .hint{
+    text-align:center;
+    font-size:12px;
+    opacity:.85;
+    margin-top:12px;
+    max-width:360px;
+    line-height:1.6;
+  }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  .btn{
+    font-family:'Poppins',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:11px 22px;
+    border:none;
+    border-radius:30px;
+    background:#fff;
+    color:var(--pink);
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease;
+  }
+  .btn:hover{ transform:translateY(-3px); }
+  .btn.secondary{
+    background:var(--glass);
+    color:#fff;
+    backdrop-filter:blur(10px);
+  }
+
+  #overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(120,20,60,.55);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  #overlay.show, #loseOverlay.show{ display:flex; }
+  #loseOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(120,20,60,.55);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay-card{
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.35);
+    border-radius:22px;
+    padding:34px 28px;
+    text-align:center;
+    max-width:320px;
+    box-shadow:0 25px 50px rgba(0,0,0,.4);
+  }
+  .overlay-card h2{ margin-bottom:10px; }
+  .overlay-card p{ font-size:14px; opacity:.9; margin-bottom:18px; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<!-- Sound Effects -->
+<audio id="pullSound" src="coin.mp3" preload="auto"></audio>
+<audio id="blockedSound" src="damage.mp3" preload="auto"></audio>
+<audio id="winSound" src="powerup.mp3" preload="auto"></audio>
+<audio id="loseSound" src="gameover.mp3" preload="auto"></audio>
+
+<div class="top-bar">
+  <a href="menu.html" class="back-btn">⬅ Menu</a>
+  <span></span>
+</div>
+
+<h2>🔩 Baut & Mur</h2>
+<p class="subtitle">Tarik keluar setiap baut sesuai arah panahnya sebelum jatah tarikanmu habis. Setiap kali tap dihitung, jadi rencanakan dulu!</p>
+
+<div class="stats">
+  <div><span>Level</span><h3 id="levelEl">1</h3></div>
+  <div><span>Sisa</span><h3 id="remainEl">0</h3></div>
+  <div><span>Tarikan</span><h3 id="movesLeftEl">0</h3></div>
+</div>
+
+<div class="board-wrap">
+  <svg id="svgBoard" viewBox="0 0 100 100"></svg>
+</div>
+
+<p class="hint">💡 Tap baut untuk menariknya keluar. Setiap tap — berhasil atau kena getar karena terhalang — memakan satu jatah tarikan. Habiskan dengan hati-hati!</p>
+
+<div class="controls">
+  <button class="btn" id="resetLevelBtn">🔄 Ulang</button>
+  <button class="btn secondary" id="newPuzzleBtn">🔀 Puzzle Baru</button>
+</div>
+
+<div id="overlay">
+  <div class="overlay-card">
+    <h2>Beres! 🎉</h2>
+    <p id="successMsg">Semua baut berhasil dilepas!</p>
+    <button class="btn" id="nextLevelBtn">▶ Level Berikutnya</button>
+  </div>
+</div>
+
+<div id="loseOverlay">
+  <div class="overlay-card">
+    <h2>Kehabisan Tarikan 💔</h2>
+    <p id="loseMsg">Jatah tarikanmu habis sebelum semua baut lepas.</p>
+    <button class="btn" id="retryBtn">🔄 Coba Lagi</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const svg = document.getElementById('svgBoard');
+  const levelEl = document.getElementById('levelEl');
+  const remainEl = document.getElementById('remainEl');
+  const movesLeftEl = document.getElementById('movesLeftEl');
+  const resetLevelBtn = document.getElementById('resetLevelBtn');
+  const newPuzzleBtn = document.getElementById('newPuzzleBtn');
+  const overlay = document.getElementById('overlay');
+  const nextLevelBtn = document.getElementById('nextLevelBtn');
+  const successMsg = document.getElementById('successMsg');
+  const loseOverlay = document.getElementById('loseOverlay');
+  const loseMsg = document.getElementById('loseMsg');
+  const retryBtn = document.getElementById('retryBtn');
+
+  const pullSound = document.getElementById('pullSound');
+  const blockedSound = document.getElementById('blockedSound');
+  const winSound = document.getElementById('winSound');
+  const loseSound = document.getElementById('loseSound');
+
+  function playSfx(audio){
+    try{
+      audio.currentTime = 0;
+      audio.play().catch(()=>{});
+    }catch(e){}
+  }
+
+  const CELL = 56;
+  const PAD = 34;
+  const THICK = 24;
+  const HEX_R = 15;
+  const HEAD_R = 19;
+
+  const PALETTE = ['#ff4f92','#ffd166','#5ec8ff','#6be6b3','#b185ff','#ffb37b','#ff6f6f','#8de0ff'];
+
+  let level = 1;
+  let baseLayout = null;
+  let pins = [];
+  let moves = 0;
+  let movesLeft = 0;
+  let locked = false;
+  let gameOver = false;
+
+  function randInt(min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function shade(hex, percent){
+    const num = parseInt(hex.slice(1), 16);
+    let r = (num >> 16) + Math.round(255 * percent);
+    let g = ((num >> 8) & 0x00FF) + Math.round(255 * percent);
+    let b = (num & 0x0000FF) + Math.round(255 * percent);
+    r = Math.max(0, Math.min(255, r));
+    g = Math.max(0, Math.min(255, g));
+    b = Math.max(0, Math.min(255, b));
+    return '#' + (0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
+  }
+
+  function key(r,c){ return r+','+c; }
+
+  function buildLayout(lvl){
+    const size = Math.min(4 + Math.floor((lvl - 1) / 1.5), 8);
+    const targetPins = Math.min(6 + Math.floor(lvl * 1.8), 24);
+    const maxLen = Math.min(5, size - 1);
+    const occupied = new Set();
+    const built = [];
+
+    for(let i = targetPins; i >= 1; i--){
+      let placed = false;
+      for(let attempt = 0; attempt < 160 && !placed; attempt++){
+        const orientation = Math.random() < 0.5 ? 'h' : 'v';
+        const length = randInt(2, Math.max(2, maxLen));
+        const dir = Math.random() < 0.5 ? 1 : -1;
+        let cells = [], corridor = [];
+
+        if(orientation === 'h'){
+          const row = randInt(0, size - 1);
+          const startCol = randInt(0, size - length);
+          for(let k = 0; k < length; k++) cells.push([row, startCol + k]);
+          if(dir === 1){ for(let c = startCol + length; c < size; c++) corridor.push([row, c]); }
+          else { for(let c = 0; c < startCol; c++) corridor.push([row, c]); }
+        } else {
+          const col = randInt(0, size - 1);
+          const startRow = randInt(0, size - length);
+          for(let k = 0; k < length; k++) cells.push([startRow + k, col]);
+          if(dir === 1){ for(let r = startRow + length; r < size; r++) corridor.push([r, col]); }
+          else { for(let r = 0; r < startRow; r++) corridor.push([r, col]); }
+        }
+
+        const cellKeys = cells.map(([r,c]) => key(r,c));
+        const corridorKeys = corridor.map(([r,c]) => key(r,c));
+        const blocked = cellKeys.some(k => occupied.has(k)) || corridorKeys.some(k => occupied.has(k));
+
+        if(!blocked){
+          cellKeys.forEach(k => occupied.add(k));
+          built.push({
+            id: built.length,
+            orientation, dir, cells,
+            color: PALETTE[built.length % PALETTE.length]
+          });
+          placed = true;
+        }
+      }
+    }
+
+    return { size, pins: built };
+  }
+
+  function computeCorridor(pin, size){
+    const corridor = [];
+    if(pin.orientation === 'h'){
+      const row = pin.cells[0][0];
+      const cols = pin.cells.map(c => c[1]);
+      const minC = Math.min(...cols), maxC = Math.max(...cols);
+      if(pin.dir === 1){ for(let c = maxC + 1; c < size; c++) corridor.push([row, c]); }
+      else { for(let c = 0; c < minC; c++) corridor.push([row, c]); }
+    } else {
+      const col = pin.cells[0][1];
+      const rows = pin.cells.map(c => c[0]);
+      const minR = Math.min(...rows), maxR = Math.max(...rows);
+      if(pin.dir === 1){ for(let r = maxR + 1; r < size; r++) corridor.push([r, col]); }
+      else { for(let r = 0; r < minR; r++) corridor.push([r, col]); }
+    }
+    return corridor;
+  }
+
+  function hexPoints(cx, cy, r){
+    const pts = [];
+    for(let i = 0; i < 6; i++){
+      const angle = Math.PI / 180 * (60 * i - 30);
+      pts.push((cx + r * Math.cos(angle)).toFixed(1) + ',' + (cy + r * Math.sin(angle)).toFixed(1));
+    }
+    return pts.join(' ');
+  }
+
+  function cellCenter(r, c){
+    return { x: PAD + c * CELL + CELL / 2, y: PAD + r * CELL + CELL / 2 };
+  }
+
+  function headCellOf(pin){
+    const last = pin.cells.length - 1;
+    return pin.dir === 1 ? pin.cells[last] : pin.cells[0];
+  }
+
+  function pullLimitFor(lvl, pinCount){
+    const buffer = Math.max(1, 4 - Math.floor(lvl / 2));
+    return pinCount + buffer;
+  }
+
+  function newLevel(lvl){
+    level = lvl;
+    levelEl.textContent = level;
+    baseLayout = buildLayout(level);
+    startFromBase();
+  }
+
+  function startFromBase(){
+    moves = 0;
+    locked = false;
+    gameOver = false;
+    overlay.classList.remove('show');
+    loseOverlay.classList.remove('show');
+    pins = baseLayout.pins.map(p => ({ ...p, removed: false }));
+    remainEl.textContent = pins.length;
+    movesLeft = pullLimitFor(level, pins.length);
+    movesLeftEl.textContent = movesLeft;
+    render();
+  }
+
+  function regenerateSameLevel(){
+    baseLayout = buildLayout(level);
+    startFromBase();
+  }
+
+  function render(){
+    const size = baseLayout.size;
+    const total = size * CELL + PAD * 2;
+    svg.setAttribute('viewBox', `0 0 ${total} ${total}`);
+    svg.innerHTML = '';
+
+    pins.forEach(pin => {
+      if(pin.removed) return;
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'pin-group');
+      g.dataset.id = pin.id;
+
+      const c0 = cellCenter(pin.cells[0][0], pin.cells[0][1]);
+      const cN = cellCenter(pin.cells[pin.cells.length-1][0], pin.cells[pin.cells.length-1][1]);
+
+      const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      if(pin.orientation === 'h'){
+        bar.setAttribute('x', c0.x);
+        bar.setAttribute('y', c0.y - THICK/2);
+        bar.setAttribute('width', cN.x - c0.x);
+        bar.setAttribute('height', THICK);
+      } else {
+        bar.setAttribute('x', c0.x - THICK/2);
+        bar.setAttribute('y', c0.y);
+        bar.setAttribute('width', THICK);
+        bar.setAttribute('height', cN.y - c0.y);
+      }
+      bar.setAttribute('rx', THICK/2);
+      bar.setAttribute('fill', shade(pin.color, -0.12));
+      bar.setAttribute('stroke', shade(pin.color, -0.35));
+      bar.setAttribute('stroke-width', 1.5);
+      g.appendChild(bar);
+
+      const head = headCellOf(pin);
+      pin.cells.forEach(([r,c]) => {
+        const isHead = (r === head[0] && c === head[1]);
+        const { x, y } = cellCenter(r, c);
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', hexPoints(x, y, isHead ? HEAD_R : HEX_R));
+        poly.setAttribute('fill', isHead ? shade(pin.color, 0.12) : pin.color);
+        poly.setAttribute('stroke', shade(pin.color, -0.4));
+        poly.setAttribute('stroke-width', isHead ? 2.5 : 1.8);
+        g.appendChild(poly);
+
+        if(isHead){
+          const slot = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          const len = HEAD_R * 0.9;
+          if(pin.orientation === 'h'){
+            slot.setAttribute('x1', x - len/2); slot.setAttribute('y1', y);
+            slot.setAttribute('x2', x + len/2); slot.setAttribute('y2', y);
+          } else {
+            slot.setAttribute('x1', x); slot.setAttribute('y1', y - len/2);
+            slot.setAttribute('x2', x); slot.setAttribute('y2', y + len/2);
+          }
+          slot.setAttribute('stroke', shade(pin.color, -0.55));
+          slot.setAttribute('stroke-width', 3);
+          slot.setAttribute('stroke-linecap', 'round');
+          g.appendChild(slot);
+        } else {
+          const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+          dot.setAttribute('r', 3.5);
+          dot.setAttribute('fill', shade(pin.color, -0.4));
+          g.appendChild(dot);
+        }
+      });
+
+      g.addEventListener('pointerdown', () => attemptRemove(pin.id));
+      svg.appendChild(g);
+    });
+  }
+
+  function attemptRemove(id){
+    if(locked || gameOver) return;
+    const pin = pins.find(p => p.id === id);
+    if(!pin || pin.removed) return;
+
+    const size = baseLayout.size;
+    const corridor = computeCorridor(pin, size);
+    const blockedBy = pins.some(other =>
+      !other.removed && other.id !== pin.id &&
+      other.cells.some(([r,c]) => corridor.some(([cr,cc]) => cr === r && cc === c))
+    );
+
+    const g = svg.querySelector(`.pin-group[data-id="${id}"]`);
+
+    if(blockedBy){
+      if(g){
+        g.classList.remove('shake');
+        void g.offsetWidth;
+        g.classList.add('shake');
+      }
+      playSfx(blockedSound);
+      movesLeft--;
+      movesLeftEl.textContent = Math.max(0, movesLeft);
+      if(movesLeft <= 0){
+        gameOver = true;
+        setTimeout(showLose, 400);
+      }
+      return;
+    }
+
+    locked = true;
+    moves++;
+    movesLeft--;
+    pin.removed = true;
+    playSfx(pullSound);
+    remainEl.textContent = pins.filter(p => !p.removed).length;
+    movesLeftEl.textContent = Math.max(0, movesLeft);
+
+    if(g){
+      const total = size * CELL + PAD * 2;
+      let dx = 0, dy = 0;
+      if(pin.orientation === 'h'){ dx = pin.dir === 1 ? total : -total; }
+      else { dy = pin.dir === 1 ? total : -total; }
+      g.style.transition = 'transform .45s cubic-bezier(.3,0,.2,1)';
+      requestAnimationFrame(() => {
+        g.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+      setTimeout(() => {
+        g.remove();
+        locked = false;
+        if(pins.every(p => p.removed)){
+          checkWin();
+        } else if(movesLeft <= 0){
+          gameOver = true;
+          showLose();
+        }
+      }, 460);
+    } else {
+      locked = false;
+      if(pins.every(p => p.removed)){
+        checkWin();
+      } else if(movesLeft <= 0){
+        gameOver = true;
+        showLose();
+      }
+    }
+  }
+
+  function checkWin(){
+    gameOver = true;
+    playSfx(winSound);
+    successMsg.textContent = 'Level ' + level + ' beres dalam ' + moves + ' tarikan! 🎉';
+    setTimeout(() => overlay.classList.add('show'), 250);
+  }
+
+  function showLose(){
+    playSfx(loseSound);
+    loseMsg.textContent = 'Masih ada ' + pins.filter(p => !p.removed).length + ' baut yang belum lepas. Coba lagi yuk!';
+    loseOverlay.classList.add('show');
+  }
+
+  resetLevelBtn.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    loseOverlay.classList.remove('show');
+    startFromBase();
+  });
+
+  newPuzzleBtn.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    loseOverlay.classList.remove('show');
+    regenerateSameLevel();
+  });
+
+  nextLevelBtn.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    newLevel(level + 1);
+  });
+
+  retryBtn.addEventListener('click', () => {
+    loseOverlay.classList.remove('show');
+    startFromBase();
+  });
+
+  newLevel(1);
+})();
+</script>
+
+</body>
+</html>
