@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>One Line 〰️</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1c2431">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  :root{
+    --bg-top:#2b3648;
+    --bg-bottom:#161c27;
+    --panel:#242e3d;
+    --cell-off:#4b5768;
+    --cell-off-top:#57657a;
+    --path:#7c7ff5;
+    --path-deep:#5c5ee0;
+    --accent:#FFD54F;
+    --glass:rgba(255,255,255,.08);
+    --shadow:0 15px 35px rgba(0,0,0,.35);
+  }
+
+  html,body{ height:100%; overscroll-behavior:none; }
+
+  body{
+    font-family:'Poppins',sans-serif;
+    background: radial-gradient(ellipse 120% 60% at 50% 0%, var(--bg-top), var(--bg-bottom) 70%);
+    background-attachment:fixed;
+    color:#fff;
+    min-height:100vh;
+    overflow-x:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:18px 14px 40px;
+    touch-action:pan-y;
+  }
+
+  .top-bar{
+    width:100%;
+    max-width:440px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+  }
+
+  .icon-btn{
+    text-decoration:none;
+    color:#fff;
+    background:var(--glass);
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    box-shadow:var(--shadow);
+    border:none;
+    cursor:pointer;
+    transition:transform .2s ease;
+  }
+  .icon-btn:hover{ transform:translateY(-2px) rotate(-8deg); }
+
+  .level-wrap{
+    flex:1;
+    margin:0 14px;
+    text-align:center;
+  }
+  .level-wrap .lvl-label{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    opacity:.85;
+    margin-bottom:6px;
+  }
+  .progress-track{
+    position:relative;
+    width:100%;
+    height:9px;
+    border-radius:20px;
+    background:rgba(255,255,255,.12);
+    overflow:hidden;
+  }
+  .progress-fill{
+    position:absolute;
+    inset:0 auto 0 0;
+    width:0%;
+    background:linear-gradient(90deg, var(--accent), #ffb300);
+    border-radius:20px;
+    transition:width .25s ease;
+  }
+  .progress-count{
+    font-size:11px;
+    opacity:.75;
+    margin-top:5px;
+  }
+
+  h2{
+    text-align:center;
+    font-size:clamp(1.1em,4.5vw,1.5em);
+    margin-bottom:2px;
+    font-weight:800;
+  }
+
+  .subtitle{
+    text-align:center;
+    font-size:12.5px;
+    opacity:.75;
+    max-width:380px;
+    margin-bottom:16px;
+    line-height:1.6;
+  }
+
+  .board-wrap{
+    width:min(420px,94vw);
+    background:var(--panel);
+    border-radius:24px;
+    box-shadow:var(--shadow), inset 0 0 0 1px rgba(255,255,255,.06);
+    padding:18px;
+    touch-action:none;
+  }
+
+  svg{ display:block; width:100%; height:auto; touch-action:none; overflow:visible; }
+
+  .hint{
+    text-align:center;
+    font-size:12px;
+    opacity:.7;
+    margin-top:14px;
+    max-width:360px;
+    line-height:1.6;
+  }
+
+  .controls{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  .btn{
+    font-family:'Poppins',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:11px 22px;
+    border:none;
+    border-radius:30px;
+    background:var(--accent);
+    color:#4a3600;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .25s ease;
+  }
+  .btn:hover{ transform:translateY(-3px); }
+  .btn.secondary{
+    background:var(--glass);
+    color:#fff;
+  }
+
+  #overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(10,14,20,.65);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  #overlay.show{ display:flex; }
+  .overlay-card{
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:22px;
+    padding:34px 28px;
+    text-align:center;
+    max-width:320px;
+    box-shadow:0 25px 50px rgba(0,0,0,.5);
+  }
+  .overlay-card h2{ margin-bottom:10px; }
+  .overlay-card p{ font-size:14px; opacity:.85; margin-bottom:18px; line-height:1.7; }
+</style>
+</head>
+<body>
+
+<!-- Sound Effects -->
+<audio id="drawSound" src="click.mp3" preload="auto"></audio>
+<audio id="winSound" src="powerup.mp3" preload="auto"></audio>
+
+<div class="top-bar">
+  <a href="index.html" class="icon-btn" aria-label="Menu">←</a>
+  <div class="level-wrap">
+    <div class="lvl-label">LEVEL <span id="levelEl">1</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-count" id="progressCount">0/0</div>
+  </div>
+  <button class="icon-btn" id="resetDrawBtn" aria-label="Ulang">↻</button>
+</div>
+
+<h2>〰️ One Line</h2>
+<p class="subtitle">Isi semua kotak dalam satu tarikan jalur tanpa mengangkat jari dan tanpa melewati kotak yang sama!</p>
+
+<div class="board-wrap">
+  <svg id="svgBoard" viewBox="0 0 100 100"></svg>
+</div>
+
+<p class="hint">💡 Mulai dari salah satu ujung jalur (titik berkedip), lalu seret ke kotak sebelah yang masih kosong sampai semua kotak terisi.</p>
+
+<div class="controls">
+  <button class="btn secondary" id="newPuzzleBtn">🔀 Puzzle Baru</button>
+</div>
+
+<div id="overlay">
+  <div class="overlay-card">
+    <h2>Berhasil! 🎉</h2>
+    <p id="successMsg">Level selesai!</p>
+    <button class="btn" id="nextLevelBtn">▶ Level Berikutnya</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const svg = document.getElementById('svgBoard');
+  const levelEl = document.getElementById('levelEl');
+  const progressFill = document.getElementById('progressFill');
+  const progressCount = document.getElementById('progressCount');
+  const resetDrawBtn = document.getElementById('resetDrawBtn');
+  const newPuzzleBtn = document.getElementById('newPuzzleBtn');
+  const overlay = document.getElementById('overlay');
+  const nextLevelBtn = document.getElementById('nextLevelBtn');
+  const successMsg = document.getElementById('successMsg');
+
+  const drawSound = document.getElementById('drawSound');
+  const winSound = document.getElementById('winSound');
+
+  function playSfx(audio){
+    try{ audio.currentTime = 0; audio.play().catch(()=>{}); }catch(e){}
+  }
+
+  const CELL = 54;
+  const GAP = 6;
+  const PAD = 10;
+  const HIT_RADIUS = 30;
+
+  let level = 1;
+  let puzzle = null;      // { cells:[{r,c,key}], adj:{key:[keys]}, endpoints:[key,key], width, height }
+  let visited = [];        // ordered list of cell keys drawn so far
+  let visitedSet = new Set();
+  let dragging = false;
+  let pointerSvgPos = null;
+  let completed = false;
+
+  function key(r,c){ return r+','+c; }
+
+  // Build a simple (non-self-crossing, orthogonal) self-avoiding walk that
+  // becomes the full board: every cell on the walk is a playable cell, so a
+  // Hamiltonian path always exists by construction.
+  function generateOrthoPath(targetLen){
+    const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+    let best = [];
+
+    function tryOnce(){
+      let opsBudget = 6000;
+      const start = [0,0];
+      const visitedLocal = new Set([key(0,0)]);
+      const path = [start];
+      let longest = path.slice();
+
+      function backtrack(){
+        opsBudget--;
+        if(opsBudget <= 0) return;
+        if(path.length > longest.length) longest = path.slice();
+        if(path.length >= targetLen) return;
+        const current = path[path.length-1];
+        const options = dirs
+          .map(([dr,dc]) => [current[0]+dr, current[1]+dc])
+          .filter(([r,c]) => !visitedLocal.has(key(r,c)));
+        options.sort(() => Math.random()-0.5);
+        for(const opt of options){
+          const k = key(opt[0],opt[1]);
+          visitedLocal.add(k);
+          path.push(opt);
+          backtrack();
+          path.pop();
+          visitedLocal.delete(k);
+          if(opsBudget <= 0) return;
+        }
+      }
+      backtrack();
+      return longest;
+    }
+
+    for(let attempt=0; attempt<10; attempt++){
+      const p = tryOnce();
+      if(p.length > best.length) best = p;
+      if(best.length >= targetLen) break;
+    }
+    return best;
+  }
+
+  function buildPuzzle(lvl){
+    const targetLen = Math.min(9 + lvl*2, 34);
+    const path = generateOrthoPath(targetLen);
+
+    const minR = Math.min(...path.map(p=>p[0]));
+    const maxR = Math.max(...path.map(p=>p[0]));
+    const minC = Math.min(...path.map(p=>p[1]));
+    const maxC = Math.max(...path.map(p=>p[1]));
+
+    const cells = path.map(([r,c]) => ({
+      r: r - minR, c: c - minC, key: key(r-minR, c-minC)
+    }));
+    const cellSet = new Set(cells.map(c=>c.key));
+
+    const adj = {};
+    for(let i=0;i<path.length;i++){
+      const a = key(path[i][0]-minR, path[i][1]-minC);
+      adj[a] = adj[a] || [];
+      if(i>0){
+        const b = key(path[i-1][0]-minR, path[i-1][1]-minC);
+        adj[a].push(b);
+      }
+      if(i<path.length-1){
+        const b = key(path[i+1][0]-minR, path[i+1][1]-minC);
+        adj[a].push(b);
+      }
+    }
+
+    const endpoints = [cells[0].key, cells[cells.length-1].key];
+
+    const rows = maxR - minR + 1;
+    const cols = maxC - minC + 1;
+    const width = cols*(CELL+GAP) - GAP + PAD*2;
+    const height = rows*(CELL+GAP) - GAP + PAD*2;
+
+    return { cells, cellSet, adj, endpoints, rows, cols, width, height };
+  }
+
+  function cellXY(r,c){
+    return { x: PAD + c*(CELL+GAP), y: PAD + r*(CELL+GAP) };
+  }
+  function cellCenter(r,c){
+    const {x,y} = cellXY(r,c);
+    return { x: x+CELL/2, y: y+CELL/2 };
+  }
+
+  function resetDrawing(){
+    visited = [puzzle.startKey];
+    visitedSet = new Set(visited);
+    dragging = false;
+    pointerSvgPos = null;
+    render();
+  }
+
+  function newLevel(lvl){
+    level = lvl;
+    levelEl.textContent = level;
+    puzzle = buildPuzzle(level);
+    puzzle.startKey = puzzle.endpoints[Math.floor(Math.random()*2)];
+    completed = false;
+    resetDrawing();
+  }
+
+  function regeneratePuzzleSameLevel(){
+    puzzle = buildPuzzle(level);
+    puzzle.startKey = puzzle.endpoints[Math.floor(Math.random()*2)];
+    completed = false;
+    resetDrawing();
+  }
+
+  function cellByKey(k){
+    return puzzle.cells.find(c => c.key === k);
+  }
+
+  function render(){
+    svg.setAttribute('viewBox', `0 0 ${puzzle.width} ${puzzle.height}`);
+    svg.innerHTML = '';
+
+    const total = puzzle.cells.length;
+    progressCount.textContent = visited.length + '/' + total;
+    progressFill.style.width = Math.round((visited.length/total)*100) + '%';
+
+    const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+    defs.innerHTML = `
+      <linearGradient id="cellGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--cell-off-top')}"/>
+        <stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--cell-off')}"/>
+      </linearGradient>
+      <linearGradient id="pathGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--path')}"/>
+        <stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--path-deep')}"/>
+      </linearGradient>`;
+    svg.appendChild(defs);
+
+    // Base cells
+    puzzle.cells.forEach(cell=>{
+      const {x,y} = cellXY(cell.r, cell.c);
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', y);
+      rect.setAttribute('width', CELL);
+      rect.setAttribute('height', CELL);
+      rect.setAttribute('rx', 12);
+      const isFilled = visitedSet.has(cell.key);
+      rect.setAttribute('fill', isFilled ? 'url(#pathGrad)' : 'url(#cellGrad)');
+      svg.appendChild(rect);
+    });
+
+    // Thick white connecting line through visited cells (the "one line" stroke)
+    if(visited.length > 1){
+      let d = '';
+      visited.forEach((k, i)=>{
+        const cell = cellByKey(k);
+        const {x,y} = cellCenter(cell.r, cell.c);
+        d += (i===0 ? 'M' : 'L') + x + ' ' + y + ' ';
+      });
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d', d.trim());
+      path.setAttribute('stroke', 'rgba(255,255,255,.92)');
+      path.setAttribute('stroke-width', 10);
+      path.setAttribute('stroke-linecap','round');
+      path.setAttribute('stroke-linejoin','round');
+      path.setAttribute('fill','none');
+      svg.appendChild(path);
+    }
+
+    // Live drag preview segment
+    if(dragging && pointerSvgPos){
+      const head = cellByKey(visited[visited.length-1]);
+      const hc = cellCenter(head.r, head.c);
+      const live = document.createElementNS('http://www.w3.org/2000/svg','line');
+      live.setAttribute('x1', hc.x); live.setAttribute('y1', hc.y);
+      live.setAttribute('x2', pointerSvgPos.x); live.setAttribute('y2', pointerSvgPos.y);
+      live.setAttribute('stroke','rgba(255,255,255,.5)');
+      live.setAttribute('stroke-width', 8);
+      live.setAttribute('stroke-linecap','round');
+      svg.appendChild(live);
+    }
+
+    // Endpoint / head markers
+    puzzle.cells.forEach(cell=>{
+      const isEndpoint = puzzle.endpoints.includes(cell.key) && !visitedSet.has(cell.key);
+      const isHead = cell.key === visited[visited.length-1];
+      if(!isEndpoint && !isHead) return;
+      const {x,y} = cellCenter(cell.r, cell.c);
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', x); circle.setAttribute('cy', y);
+      circle.setAttribute('r', isHead ? 13 : 10);
+      circle.setAttribute('fill', '#fff');
+      if(isEndpoint) circle.setAttribute('class','pulse-node');
+      circle.setAttribute('stroke', isHead ? getComputedStyle(document.documentElement).getPropertyValue('--path-deep') : '#7c86a0');
+      circle.setAttribute('stroke-width', 3);
+      svg.appendChild(circle);
+    });
+  }
+
+  function getSvgPoint(evt){
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const ctm = svg.getScreenCTM().inverse();
+    return pt.matrixTransform(ctm);
+  }
+
+  function cellAtPoint(p){
+    let nearest = null, nearestDist = Infinity;
+    puzzle.cells.forEach(cell=>{
+      const c = cellCenter(cell.r, cell.c);
+      const d = Math.hypot(p.x-c.x, p.y-c.y);
+      if(d < nearestDist){ nearestDist = d; nearest = cell; }
+    });
+    return { cell: nearest, dist: nearestDist };
+  }
+
+  function onPointerDown(evt){
+    if(completed) return;
+    const p = getSvgPoint(evt);
+    const { cell, dist } = cellAtPoint(p);
+    if(!cell || dist > HIT_RADIUS) return;
+
+    // Only allow starting fresh from an endpoint of the (yet unfilled) path.
+    if(visited.length > 1) return; // already in progress, continue instead of restart
+    if(!puzzle.endpoints.includes(cell.key)) return;
+
+    evt.preventDefault();
+    visited = [cell.key];
+    visitedSet = new Set(visited);
+    dragging = true;
+    pointerSvgPos = p;
+    try{ svg.setPointerCapture(evt.pointerId); }catch(e){}
+    render();
+  }
+
+  function onPointerMove(evt){
+    if(!dragging) return;
+    evt.preventDefault();
+    const p = getSvgPoint(evt);
+    pointerSvgPos = p;
+
+    let committed = true;
+    while(committed){
+      committed = false;
+      const headKey = visited[visited.length-1];
+      const neighbors = puzzle.adj[headKey] || [];
+      for(const nk of neighbors){
+        if(visitedSet.has(nk)) continue;
+        const cell = cellByKey(nk);
+        const c = cellCenter(cell.r, cell.c);
+        const d = Math.hypot(p.x-c.x, p.y-c.y);
+        if(d < HIT_RADIUS){
+          visited.push(nk);
+          visitedSet.add(nk);
+          committed = true;
+          playSfx(drawSound);
+          break;
+        }
+      }
+    }
+
+    render();
+
+    if(visited.length === puzzle.cells.length){
+      onWin();
+    }
+  }
+
+  function onPointerUp(evt){
+    if(!dragging) return;
+    dragging = false;
+    try{ svg.releasePointerCapture(evt.pointerId); }catch(e){}
+    if(!completed && visited.length < puzzle.cells.length){
+      // Allow the player to resume later by tapping the head again, so we
+      // don't force a full reset on every lift - only clear the live preview.
+      pointerSvgPos = null;
+    }
+    render();
+  }
+
+  function onHeadPointerDown(evt){
+    // Resuming: tapping near the current head continues the same drag.
+    if(completed || dragging) return;
+    const p = getSvgPoint(evt);
+    const headKey = visited[visited.length-1];
+    const head = cellByKey(headKey);
+    const hc = cellCenter(head.r, head.c);
+    const d = Math.hypot(p.x-hc.x, p.y-hc.y);
+    if(d < HIT_RADIUS){
+      evt.preventDefault();
+      dragging = true;
+      pointerSvgPos = p;
+      try{ svg.setPointerCapture(evt.pointerId); }catch(e){}
+    }
+  }
+
+  function onWin(){
+    completed = true;
+    dragging = false;
+    playSfx(winSound);
+    successMsg.textContent = 'Level ' + level + ' selesai! Semua kotak terisi 🎉';
+    setTimeout(()=> overlay.classList.add('show'), 300);
+  }
+
+  svg.addEventListener('pointerdown', (evt)=>{
+    if(visited.length > 1 && !dragging){ onHeadPointerDown(evt); return; }
+    onPointerDown(evt);
+  });
+  svg.addEventListener('pointermove', onPointerMove);
+  svg.addEventListener('pointerup', onPointerUp);
+  svg.addEventListener('pointercancel', onPointerUp);
+
+  resetDrawBtn.addEventListener('click', ()=>{
+    if(completed) return;
+    resetDrawing();
+  });
+
+  newPuzzleBtn.addEventListener('click', ()=>{
+    overlay.classList.remove('show');
+    regeneratePuzzleSameLevel();
+  });
+
+  nextLevelBtn.addEventListener('click', ()=>{
+    overlay.classList.remove('show');
+    newLevel(level + 1);
+  });
+
+  newLevel(1);
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
